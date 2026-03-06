@@ -330,12 +330,8 @@ variable "subnetwork_ipv6_access_type" {
   default     = null
 }
 
-variable "proxy_subnetworks" {
-  description = "List of proxy subnetworks to create within the VPC. These subnetworks will automatically have purpose=REGIONAL_MANAGED_PROXY and role=ACTIVE applied."
-  type = list(object({
-    subnet_name   = string
-    subnet_region = string
-    subnet_ip     = string
-  }))
-  default = []
+variable "proxy_subnetwork" {
+  description = "If true, automatically creates a proxy-only subnet for the region with purpose=REGIONAL_MANAGED_PROXY and role=ACTIVE."
+  type        = bool
+  default     = false
 }

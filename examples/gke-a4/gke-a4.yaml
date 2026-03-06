@@ -89,7 +89,7 @@ deployment_groups:
       - subnet_name: $(vars.deployment_name)-sub-0
         subnet_region: $(vars.region)
         subnet_ip: 192.168.0.0/18
-      proxy_subnetworks: '$(vars.inference_gateway == true ? [{subnet_name: "${vars.deployment_name}-proxy-only-subnet", subnet_region: "${vars.region}", subnet_ip: "10.10.0.0/23"}] : [])'
+      proxy_subnetwork: $(vars.inference_gateway)
       secondary_ranges_list:
       - subnetwork_name: $(vars.deployment_name)-sub-0
         ranges:

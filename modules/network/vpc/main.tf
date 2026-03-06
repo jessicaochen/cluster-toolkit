@@ -74,10 +74,13 @@ locals {
     merge({ for k, v in subnet : k => v if k != "new_bits" }, { "subnet_ip" = local.subnetworks_cidr_blocks[i] })
   ]
 
-  proxy_subnetworks = [for subnet in var.proxy_subnetworks : merge(subnet, {
-    purpose = "REGIONAL_MANAGED_PROXY"
-    role    = "ACTIVE"
-  })]
+  proxy_subnetworks = var.proxy_subnetwork ? [{
+    subnet_name   = "${local.network_name}-proxy-only-subnet"
+    subnet_region = var.region
+    subnet_ip     = "10.10.0.0/23"
+    purpose       = "REGIONAL_MANAGED_PROXY"
+    role          = "ACTIVE"
+  }] : []
 
   subnetworks = concat(local.base_subnetworks, local.proxy_subnetworks)
 
