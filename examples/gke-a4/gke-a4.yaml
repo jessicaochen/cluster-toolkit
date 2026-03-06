@@ -50,6 +50,8 @@ vars:
   accelerator_type: nvidia-b200
   version_prefix: "1.33."
 
+  inference_gateway:
+
   enable_periodic_health_checks: false # Make this true to run CHS (healthchecks)
   health_check_schedule: "0 0 * * 0" # Run the health check at 12:00 AM (midnight) every Sunday
 
@@ -83,10 +85,21 @@ deployment_groups:
     settings:
       network_name: $(vars.deployment_name)-net-0
       ips_per_nat: 6
-      subnetworks:
-      - subnet_name: $(vars.deployment_name)-sub-0
-        subnet_region: $(vars.region)
-        subnet_ip: 192.168.0.0/18
+      subnetworks: >
+        $(concat(
+          [{
+            subnet_name="${vars.deployment_name}-sub-0",
+            subnet_region=vars.region,
+            subnet_ip="192.168.0.0/18"
+          }],
+          coalesce(vars.inference_gateway, false) ? [{
+            subnet_name="${vars.deployment_name}-proxy-only-subnet",
+            subnet_region=vars.region,
+            subnet_ip="10.10.0.0/23",
+            purpose="REGIONAL_MANAGED_PROXY",
+            role="ACTIVE"
+          }] : []
+        ))
       secondary_ranges_list:
       - subnetwork_name: $(vars.deployment_name)-sub-0
         ranges:
@@ -190,6 +203,8 @@ deployment_groups:
       enable_managed_lustre_csi: true # Enable Managed Lustre for the cluster
       enable_private_endpoint: false # Allows access from authorized public IPs
       configure_workload_identity_sa: true
+      enable_inference_gateway: $(coalesce(vars.inference_gateway, false))
+      gateway_api_channel: $(coalesce(vars.inference_gateway, false) ? "CHANNEL_STANDARD" : "")
       master_authorized_networks:
       - cidr_block: $(vars.authorized_cidr) # Allows your machine to run the kubectl command. Required for multi network setup.
         display_name: "kubectl-access-network"
