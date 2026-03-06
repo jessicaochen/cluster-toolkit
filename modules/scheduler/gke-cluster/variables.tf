@@ -554,3 +554,9 @@ variable "enable_inference_gateway" {
   type        = bool
   default     = false
 }
+
+variable "auto_monitoring_scope" {
+  description = "Scope of auto monitoring for Managed Prometheus. e.g., 'ALL', 'KUBERNETES_CONTROL_PLANE', etc. Leave as null to not configure."
+  type        = string
+  default     = null
+}

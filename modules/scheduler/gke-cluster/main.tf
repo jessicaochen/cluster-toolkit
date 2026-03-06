@@ -286,7 +286,8 @@ resource "google_container_cluster" "gke_cluster" {
   monitoring_config {
     enable_components = var.enable_dcgm_monitoring ? concat(local.default_monitoring_component, ["DCGM"]) : local.default_monitoring_component
     managed_prometheus {
-      enabled = true
+      enabled               = true
+      auto_monitoring_scope = var.auto_monitoring_scope != "" ? var.auto_monitoring_scope : null
     }
   }
 
