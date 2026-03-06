@@ -85,27 +85,11 @@ deployment_groups:
     settings:
       network_name: $(vars.deployment_name)-net-0
       ips_per_nat: 6
-      subnetworks: >
-        $(vars.inference_gateway == true ? [
-          {
-            subnet_name="${vars.deployment_name}-sub-0",
-            subnet_region="${vars.region}",
-            subnet_ip="192.168.0.0/18"
-          },
-          {
-            subnet_name="${vars.deployment_name}-proxy-only-subnet",
-            subnet_region="${vars.region}",
-            subnet_ip="10.10.0.0/23",
-            purpose="REGIONAL_MANAGED_PROXY",
-            role="ACTIVE"
-          }
-        ] : [
-          {
-            subnet_name="${vars.deployment_name}-sub-0",
-            subnet_region="${vars.region}",
-            subnet_ip="192.168.0.0/18"
-          }
-        ])
+      subnetworks:
+      - subnet_name: $(vars.deployment_name)-sub-0
+        subnet_region: $(vars.region)
+        subnet_ip: 192.168.0.0/18
+      proxy_subnetworks: '$(vars.inference_gateway == true ? [{subnet_name: "${vars.deployment_name}-proxy-only-subnet", subnet_region: "${vars.region}", subnet_ip: "10.10.0.0/23"}] : [])'
       secondary_ranges_list:
       - subnetwork_name: $(vars.deployment_name)-sub-0
         ranges:

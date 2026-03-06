@@ -70,9 +70,16 @@ locals {
   )
 
   # merge in the CIDR blocks (even when already there) and remove new_bits
-  subnetworks = [for i, subnet in local.input_subnetworks :
+  base_subnetworks = [for i, subnet in local.input_subnetworks :
     merge({ for k, v in subnet : k => v if k != "new_bits" }, { "subnet_ip" = local.subnetworks_cidr_blocks[i] })
   ]
+
+  proxy_subnetworks = [for subnet in var.proxy_subnetworks : merge(subnet, {
+    purpose = "REGIONAL_MANAGED_PROXY"
+    role    = "ACTIVE"
+  })]
+
+  subnetworks = concat(local.base_subnetworks, local.proxy_subnetworks)
 
   # gather the unique regions for purposes of creating Router/NAT
   cloud_router_regions = var.enable_cloud_router ? distinct([for subnet in local.subnetworks : subnet.subnet_region]) : []
