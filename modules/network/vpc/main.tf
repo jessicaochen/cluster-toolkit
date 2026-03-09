@@ -67,24 +67,22 @@ locals {
   # (2) empty list
   input_additional_subnetworks = try(slice(var.subnetworks, 1, length(var.subnetworks)), [])
 
+  input_proxy_subnetwork = var.proxy_subnetwork ? [local.default_proxy_subnetwork] : []
+
   # at this point we have constructed a list of subnetworks but need to extract
   # user-provided CIDR blocks or calculate them from user-provided new_bits
   # after we complete deprecation, local.all_subnetworks can be replaced with
   # var.subnetworks (or local.default_primary_subnetwork if that is null)
-  input_subnetworks = concat([local.input_primary_subnetwork], local.input_additional_subnetworks)
+  input_subnetworks = concat([local.input_primary_subnetwork], local.input_additional_subnetworks, local.input_proxy_subnetwork)
   subnetworks_cidr_blocks = try(
     local.input_subnetworks[*]["subnet_ip"],
     cidrsubnets(var.network_address_range, local.input_subnetworks[*]["new_bits"]...)
   )
 
   # merge in the CIDR blocks (even when already there) and remove new_bits
-  base_subnetworks = [for i, subnet in local.input_subnetworks :
+  subnetworks = [for i, subnet in local.input_subnetworks :
     merge({ for k, v in subnet : k => v if k != "new_bits" }, { "subnet_ip" = local.subnetworks_cidr_blocks[i] })
   ]
-
-  proxy_subnetworks = var.proxy_subnetwork ? [local.default_proxy_subnetwork] : []
-
-  subnetworks = concat(local.base_subnetworks, local.proxy_subnetworks)
 
   # gather the unique regions for purposes of creating Router/NAT
   cloud_router_regions = var.enable_cloud_router ? distinct([for subnet in local.subnetworks : subnet.subnet_region]) : []
