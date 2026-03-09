@@ -55,6 +55,12 @@ variable "default_primary_subnetwork_size" {
   default     = 15
 }
 
+variable "default_proxy_subnetwork_size" {
+  description = "The size, in CIDR bits, of the default proxy subnetwork. Used when var.proxy_subnetwork is true."
+  type        = number
+  default     = 23
+}
+
 variable "region" {
   description = "The default region for Cloud resources"
   type        = string
