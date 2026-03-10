@@ -49,6 +49,16 @@ locals {
     ipv6_access_type      = var.subnetwork_ipv6_access_type
   }
 
+  # Calculate newbits for the proxy subnet based on the desired target size (e.g. 23) minus the prefix length of the network address range
+  default_proxy_subnetwork_cidr_block = cidrsubnet(var.network_address_range, var.default_proxy_subnetwork_size, 1)
+  default_proxy_subnetwork = {
+    subnet_name   = "${local.network_name}-proxy-only-subnet"
+    subnet_region = var.region
+    subnet_ip     = local.default_proxy_subnetwork_cidr_block
+    purpose       = "REGIONAL_MANAGED_PROXY"
+    role          = "ACTIVE"
+  }
+
   # Identify user-supplied primary subnetwork
   # (1) explicit var.subnetworks[0]
   # (2) implicit local default subnetwork
@@ -59,11 +69,13 @@ locals {
   # (2) empty list
   input_additional_subnetworks = try(slice(var.subnetworks, 1, length(var.subnetworks)), [])
 
+  input_proxy_subnetwork = var.proxy_subnetwork ? [local.default_proxy_subnetwork] : []
+
   # at this point we have constructed a list of subnetworks but need to extract
   # user-provided CIDR blocks or calculate them from user-provided new_bits
   # after we complete deprecation, local.all_subnetworks can be replaced with
   # var.subnetworks (or local.default_primary_subnetwork if that is null)
-  input_subnetworks = concat([local.input_primary_subnetwork], local.input_additional_subnetworks)
+  input_subnetworks = concat([local.input_primary_subnetwork], local.input_proxy_subnetwork, local.input_additional_subnetworks)
   subnetworks_cidr_blocks = try(
     local.input_subnetworks[*]["subnet_ip"],
     cidrsubnets(var.network_address_range, local.input_subnetworks[*]["new_bits"]...)

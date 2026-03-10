@@ -58,6 +58,7 @@ vars:
   chs_pvc_claim_name: chs-output-pvc
   chs_cronjob_rendered_path: $(ghpc_stage("./chs-cronjob.yaml.tftpl"))
   chs_pvc_rendered_path: $(ghpc_stage("./chs-pvc.yaml.tftpl"))
+  enable_inference_gateway: false
 
   # # To enable Managed-Lustre please uncomment this section and fill out the settings.
   # # Additionally, please uncomment the private_service_access, lustre_firewall_rule, managed-lustre and lustre-pv modules.
@@ -82,6 +83,7 @@ deployment_groups:
     source: modules/network/vpc
     settings:
       network_name: $(vars.deployment_name)-net-0
+      proxy_subnetwork: $(vars.enable_inference_gateway)
       ips_per_nat: 6
       subnetworks:
       - subnet_name: $(vars.deployment_name)-sub-0
@@ -190,6 +192,7 @@ deployment_groups:
       enable_managed_lustre_csi: true # Enable Managed Lustre for the cluster
       enable_private_endpoint: false # Allows access from authorized public IPs
       configure_workload_identity_sa: true
+      enable_inference_gateway: $(vars.enable_inference_gateway)
       master_authorized_networks:
       - cidr_block: $(vars.authorized_cidr) # Allows your machine to run the kubectl command. Required for multi network setup.
         display_name: "kubectl-access-network"
