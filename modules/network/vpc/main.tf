@@ -50,7 +50,8 @@ locals {
   }
 
   # Calculate newbits for the proxy subnet based on the desired target size (e.g. 23) minus the prefix length of the network address range
-  default_proxy_subnetwork_cidr_block = cidrsubnet(var.network_address_range, var.default_proxy_subnetwork_size, 1)
+  proxy_newbits                       = var.default_proxy_subnetwork_size - tonumber(split("/", var.network_address_range)[1])
+  default_proxy_subnetwork_cidr_block = cidrsubnet(var.network_address_range, local.proxy_newbits, 1)
   default_proxy_subnetwork = {
     subnet_name   = "${local.network_name}-proxy-only-subnet"
     subnet_region = var.region
