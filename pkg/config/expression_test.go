@@ -128,6 +128,15 @@ echo "Hello $(vars.project_id)"
 		{`$("${vars.green}_${vars.sleeve}")`, `"${var.green}_${var.sleeve}"`, false},
 		{"$(fun(vars.green))", "fun(var.green)", false},
 
+		// Logical expressions
+		{"$(vars.blue && vars.green)", "var.blue&&var.green", false},
+		{"$(vars.blue || vars.green)", "var.blue||var.green", false},
+		{"$(!vars.blue)", "!var.blue", false},
+
+		// Conditional expressions
+		{"$(vars.blue ? vars.green : vars.red)", "var.blue?var.green:var.red", false},
+		{"$(vars.blue == 1 ? true : false)", "var.blue==1?true:false", false},
+
 		// Untranslatable expressions
 		{"$(vars)", "", true},
 		{"$(sleeve)", "", true},
