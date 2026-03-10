@@ -43,6 +43,9 @@ vars:
   # can be inputted as <reservation-name>/reservationBlocks/<reservation-block-name>
   reservation:
 
+  # Use Spot VMs for the node pool
+  spot: false
+
   kueue_configuration_path: $(ghpc_stage("./kueue-configuration.yaml.tftpl"))
   gib_installer_path: $(ghpc_stage("./nccl-installer.yaml.tftpl"))
   system_node_pool_disk_size_gb: 200
@@ -274,6 +277,7 @@ deployment_groups:
       guest_accelerator:
       - type: $(vars.accelerator_type)
         count: 8
+      spot: $(vars.spot)
       reservation_affinity:
         consume_reservation_type: SPECIFIC_RESERVATION
         specific_reservations:

@@ -244,9 +244,9 @@ resource "google_container_node_pool" "node_pool" {
     }
 
     reservation_affinity {
-      consume_reservation_type = var.reservation_affinity.consume_reservation_type
-      key                      = local.is_valid_reservation ? local.reservation_resource_api_label : null
-      values                   = local.is_valid_reservation ? (var.is_reservation_active ? local.active_reservation_values : local.default_reservation_values) : null
+      consume_reservation_type = var.spot ? "NO_RESERVATION" : var.reservation_affinity.consume_reservation_type
+      key                      = var.spot ? null : (local.is_valid_reservation ? local.reservation_resource_api_label : null)
+      values                   = var.spot ? null : (local.is_valid_reservation ? (var.is_reservation_active ? local.active_reservation_values : local.default_reservation_values) : null)
     }
 
     dynamic "host_maintenance_policy" {
@@ -320,7 +320,7 @@ resource "google_container_node_pool" "node_pool" {
       error_message = "Only one of local_ssd_count_ephemeral_storage or local_ssd_count_nvme_block can be set to a non-zero value."
     }
     precondition {
-      condition = (
+      condition = var.spot || (
         (var.reservation_affinity.consume_reservation_type != "SPECIFIC_RESERVATION" && local.input_specific_reservations_count == 0) ||
         (var.reservation_affinity.consume_reservation_type == "SPECIFIC_RESERVATION" && local.input_specific_reservations_count == 1)
       )
@@ -330,7 +330,7 @@ resource "google_container_node_pool" "node_pool" {
       EOT
     }
     precondition {
-      condition = (
+      condition = var.spot || (
         (local.input_specific_reservations_count == 0) ||
         ((length(local.verified_specific_reservations) == 1 || !var.is_reservation_active) &&
         length(local.specific_reservation_requirement_violations) == 0)
@@ -412,10 +412,6 @@ resource "google_container_node_pool" "node_pool" {
     precondition {
       condition     = !(var.enable_queued_provisioning && var.spot)
       error_message = "Both enable_queued_provisioning and spot consumption option cannot be set to true at the same time."
-    }
-    precondition {
-      condition     = var.spot == true ? (var.reservation_affinity.consume_reservation_type == "NO_RESERVATION") : true
-      error_message = "Spot consumption option only works with reservation_affinity consume_reservation_type NO_RESERVATION."
     }
   }
 }
