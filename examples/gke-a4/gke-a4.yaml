@@ -43,6 +43,9 @@ vars:
   # can be inputted as <reservation-name>/reservationBlocks/<reservation-block-name>
   reservation:
 
+  # Optional variable to provision VMs using discounted Spot pricing
+  spot: false
+
   kueue_configuration_path: $(ghpc_stage("./kueue-configuration.yaml.tftpl"))
   gib_installer_path: $(ghpc_stage("./nccl-installer.yaml.tftpl"))
   system_node_pool_disk_size_gb: 200
@@ -271,11 +274,12 @@ deployment_groups:
       zones: [$(vars.zone)]
       disk_size_gb: $(vars.a4_node_pool_disk_size_gb)
       static_node_count: $(vars.static_node_count)
+      spot: $(vars.spot)
       guest_accelerator:
       - type: $(vars.accelerator_type)
         count: 8
       reservation_affinity:
-        consume_reservation_type: SPECIFIC_RESERVATION
+        consume_reservation_type: $(vars.spot ? "NO_RESERVATION" : "SPECIFIC_RESERVATION")
         specific_reservations:
         - name: $(vars.reservation)
       additional_networks:
