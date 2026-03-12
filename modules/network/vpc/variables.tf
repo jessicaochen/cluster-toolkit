@@ -58,7 +58,7 @@ variable "default_primary_subnetwork_size" {
 variable "default_proxy_subnetwork_size" {
   description = "The size, in CIDR bits, of the default proxy subnetwork. Used when var.proxy_subnetwork is true."
   type        = number
-  default     = 23
+  default     = 15
 }
 
 variable "region" {

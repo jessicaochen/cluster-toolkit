@@ -83,6 +83,7 @@ deployment_groups:
     settings:
       network_name: $(vars.deployment_name)-net-0
       ips_per_nat: 6
+      proxy_subnetwork: $(vars.enable_inference_gateway)
       subnetworks:
       - subnet_name: $(vars.deployment_name)-sub-0
         subnet_region: $(vars.region)
@@ -190,7 +191,7 @@ deployment_groups:
       enable_managed_lustre_csi: true # Enable Managed Lustre for the cluster
       enable_private_endpoint: false # Allows access from authorized public IPs
       configure_workload_identity_sa: true
-      enable_inference_gateway: $(vars.inference_gateway)
+      enable_inference_gateway: $(vars.enable_inference_gateway)
       master_authorized_networks:
       - cidr_block: $(vars.authorized_cidr) # Allows your machine to run the kubectl command. Required for multi network setup.
         display_name: "kubectl-access-network"
