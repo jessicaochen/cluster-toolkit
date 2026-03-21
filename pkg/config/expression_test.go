@@ -128,6 +128,15 @@ echo "Hello $(vars.project_id)"
 		{`$("${vars.green}_${vars.sleeve}")`, `"${var.green}_${var.sleeve}"`, false},
 		{"$(fun(vars.green))", "fun(var.green)", false},
 
+		// Logical expressions
+		{"$(vars.blue && vars.green)", "var.blue&&var.green", false},
+		{"$(vars.blue || vars.green)", "var.blue||var.green", false},
+		{"$(!vars.blue)", "!var.blue", false},
+
+		// Conditional expressions
+		{"$(vars.blue ? vars.green : vars.red)", "var.blue?var.green:var.red", false},
+		{"$(vars.blue == 1 ? true : false)", "var.blue==1?true:false", false},
+
 		// Untranslatable expressions
 		{"$(vars)", "", true},
 		{"$(sleeve)", "", true},
@@ -270,6 +279,60 @@ func TestReplaceTokens(t *testing.T) {
 			got := replaceTokens(b, o, n)
 			if diff := cmp.Diff(tc.want, string(got.Bytes())); diff != "" {
 				t.Errorf("diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestEvalExpressions(t *testing.T) {
+	bp := Blueprint{Vars: NewDict(map[string]cty.Value{
+		"t": cty.BoolVal(true),
+		"f": cty.BoolVal(false),
+		"one": cty.NumberIntVal(1),
+		"two": cty.NumberIntVal(2),
+	})}
+
+	type test struct {
+		expr string
+		want cty.Value
+	}
+	tests := []test{
+		// Logical expressions
+		{"var.t && var.t", cty.BoolVal(true)},
+		{"var.t && var.f", cty.BoolVal(false)},
+		{"var.f && var.t", cty.BoolVal(false)},
+		{"var.f && var.f", cty.BoolVal(false)},
+
+		{"var.t || var.t", cty.BoolVal(true)},
+		{"var.t || var.f", cty.BoolVal(true)},
+		{"var.f || var.t", cty.BoolVal(true)},
+		{"var.f || var.f", cty.BoolVal(false)},
+
+		{"!var.t", cty.BoolVal(false)},
+		{"!var.f", cty.BoolVal(true)},
+
+		// Conditional expressions (ternary)
+		{"var.t ? var.one : var.two", cty.NumberIntVal(1)},
+		{"var.f ? var.one : var.two", cty.NumberIntVal(2)},
+		{"var.one == 1 ? true : false", cty.BoolVal(true)},
+		{"var.one == 2 ? true : false", cty.BoolVal(false)},
+		{"var.one != 2 ? true : false", cty.BoolVal(true)},
+
+		// Complex combinations
+		{"(var.t && var.f) ? var.one : var.two", cty.NumberIntVal(2)},
+		{"(var.t || var.f) ? var.one : var.two", cty.NumberIntVal(1)},
+		{"(!var.f) ? var.one : var.two", cty.NumberIntVal(1)},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.expr, func(t *testing.T) {
+			expr := MustParseExpression(tc.expr)
+			got, err := bp.Eval(expr.AsValue())
+			if err != nil {
+				t.Fatalf("got unexpected error evaluating %q: %s", tc.expr, err)
+			}
+			if diff := cmp.Diff(tc.want, got, ctydebug.CmpOptions); diff != "" {
+				t.Errorf("diff (-want +got) for %q:\n%s", tc.expr, diff)
 			}
 		})
 	}
