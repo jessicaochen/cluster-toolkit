@@ -55,6 +55,12 @@ variable "default_primary_subnetwork_size" {
   default     = 15
 }
 
+variable "default_proxy_subnetwork_size" {
+  description = "The size, in CIDR bits, of the default proxy subnetwork. Used when var.proxy_subnetwork is true."
+  type        = number
+  default     = 23
+}
+
 variable "region" {
   description = "The default region for Cloud resources"
   type        = string
@@ -328,4 +334,10 @@ variable "subnetwork_ipv6_access_type" {
   description = "The access type of IPv6 address the subnetworks"
   type        = string
   default     = null
+}
+
+variable "proxy_subnetwork" {
+  description = "If true, automatically creates a proxy-only subnet for the region with purpose=REGIONAL_MANAGED_PROXY and role=ACTIVE."
+  type        = bool
+  default     = false
 }
